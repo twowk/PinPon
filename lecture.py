@@ -1,6 +1,11 @@
 import numpy as np
 
 ########################################
+#Permet la lecture du document en entrée, renvoie : 
+#dico : toutes les infos pour chaque zone à évacuer
+#graph : infos du graphe avec les capacités des arcs, longeurs,...
+#evac node : listes des noeuds des zones à évacuer
+#liste edge : liste de tous les arcs 
 def file_read(filename):
 	f = open(filename, 'r')
 	f.readline()
@@ -59,6 +64,12 @@ def file_read(filename):
 
 
 ########################################
+#Permet de lire un fichier solution, renvoie :
+#dico_soluce : pour chaque zone à evacuer, 
+#	l'id de la zone de depart
+#	le taux d'evac
+#	la date de debut
+#liste_evac_node_soluce : id des zones de depart
 def soluce(filename):
 	f = open(filename, 'r')
 
@@ -96,6 +107,7 @@ def soluce(filename):
 ########################################
 
 ########################################
+#
 def getFlow(L,date):
 	if date<(L[2]):
 		return 0
@@ -106,7 +118,9 @@ def getFlow(L,date):
 ########################################
 
 ########################################
-def verif(dico_soluce,dico,graph,liste_evac_node, liste_edge,liste_evac_node_soluce):
+#Permet de verifier que la solution est realisable
+#Renvoie True ou False
+def verif(dico_soluce,dico,graph,liste_evac_node):
 
 	liste_R = []
 	liste_master = []
@@ -142,19 +156,19 @@ def verif(dico_soluce,dico,graph,liste_evac_node, liste_edge,liste_evac_node_sol
 			if somme>capa:
 				return False
 	decal_max = 0
-	for z in liste_evac_node_soluce:
+	for z in liste_evac_node:
 		if (dico_soluce[z]["date_debut"]>decal_max):
 			decal_max = dico_soluce[z]["date_debut"]
 	
-	if((borne_inf(dico_soluce,dico,graph,liste_evac_node, liste_edge)+decal_max)==dico_soluce["val_fct_obj"]):
+	if((borne_inf(dico,graph)+decal_max)==dico_soluce["val_fct_obj"]):
 		return True
 	else:
 		return False
 ########################################	
 
-def borne_inf(dico_soluce,dico,graph,liste_evac_node, liste_edge):
+def borne_inf(dico,graph):	#Comme si tout le monde partait en même sans qu'il y ait de problème sur les arcs
 	maxe = 0
-	print(dico)
+	
 	for E in dico:
 		somme = dico[E]["pop"] / dico[E]["max_rate"]
 		for j in range(dico[E]["k"]):
@@ -166,9 +180,9 @@ def borne_inf(dico_soluce,dico,graph,liste_evac_node, liste_edge):
 			maxe = somme
 	return maxe
 
-def borne_sup(dico_soluce,dico,graph,liste_evac_node, liste_edge):
+def borne_sup(dico,graph):	#Les zones s'évacuent les unes après les autres, une zone commençant seulement quand la précédente a terminé
 	maxe = 0
-	print(dico)
+	
 	for E in dico:
 		somme = dico[E]["pop"] / dico[E]["max_rate"]
 		for j in range(dico[E]["k"]):
@@ -179,15 +193,55 @@ def borne_sup(dico_soluce,dico,graph,liste_evac_node, liste_edge):
 		maxe += somme
 	return maxe
 
+##############################
+#Fonction d'evaluation
+#Retourne un tuple contenant la valeur de la fonc objectif
+#et un boolean disant si la solution est valide
+def fonc_eval(liste_depart,dico,graph,liste_evac_node):
+	print("fonc_eval")
+	dico_soluce = {}
+	for i in range(len(liste_depart)):
+		dico_soluce[i+1] = {"id" : i+1,"taux_evac" : dico[i+1]["max_rate"], "date_debut" : liste_depart[i]}
+	dico_soluce["val_fonc_obj"] = liste_depart[-1] + borne_inf(dico,graph)
+	sol_ok = verif(dico_soluce,dico,graph,liste_evac_node)
+	return (dico_soluce["val_fonc_obj"],sol_ok)
+
+#Recherche locale - Intensification
+def intensification(liste_evac_node,dico,graph):
+	print("intensification")
+	liste_depart = []
+	#On se place à borne sup
+	maxe = 0
+	for E in dico:
+		liste_depart.append(maxe)
+		somme = dico[E]["pop"] / dico[E]["max_rate"]
+		for j in range(dico[E]["k"]):
+			if j == 0:
+				somme += graph[(dico[E]["id"],dico[E]["v"][j])]["length"]
+			else:
+				somme += graph[(dico[E]["v"][j-1],dico[E]["v"][j])]["length"]
+		maxe += somme
+	print(liste_depart)
+	continuer = 1
+	coeff = 2 #coeff pour reduire rapidement les dates de depart
+	while (continuer):
+		
+
+
+##############################
+
 (dico, graph, liste_evac_node, liste_edge) = file_read("exemple.txt")
 (dico_soluce,liste_evac_node_soluce) = soluce("soluce.txt")
 
-resultat = verif(dico_soluce,dico,graph,liste_evac_node, liste_edge,liste_evac_node_soluce)
-print(resultat)
-print(borne_inf(dico_soluce,dico,graph,liste_evac_node, liste_edge))
-print(borne_sup(dico_soluce,dico,graph,liste_evac_node, liste_edge))
+resultat = verif(dico_soluce,dico,graph,liste_evac_node)
 
+print("dico soluce : ",dico_soluce)
+print("evac node soluce : ", liste_evac_node_soluce)
+#print(resultat)
+#print(borne_inf(dico,graph))
+#print(borne_sup(dico,graph))
 
+intensification(liste_evac_node,dico,graph)
 
 
 
