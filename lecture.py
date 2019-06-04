@@ -1,10 +1,12 @@
 import numpy as np
+import random as rd
+import copy as cp
 
 ########################################
-#Permet la lecture du document en entrée, renvoie : 
-#dico : toutes les infos pour chaque zone à évacuer
-#graph : infos du graphe avec les capacités des arcs, longeurs,...
-#evac node : listes des noeuds des zones à évacuer
+#Permet la lecture du document en entree, renvoie : 
+#dico : toutes les infos pour chaque zone a evacuer
+#graph : infos du graphe avec les capacites des arcs, longeurs,...
+#evac node : listes des noeuds des zones a evacuer
 #liste edge : liste de tous les arcs 
 def file_read(filename):
 	f = open(filename, 'r')
@@ -65,7 +67,7 @@ def file_read(filename):
 
 ########################################
 #Permet de lire un fichier solution, renvoie :
-#dico_soluce : pour chaque zone à evacuer, 
+#dico_soluce : pour chaque zone a evacuer, 
 #	l'id de la zone de depart
 #	le taux d'evac
 #	la date de debut
@@ -178,7 +180,7 @@ def verif(dico_soluce,dico,graph,liste_evac_node):
 
 ########################################	
 
-def borne_inf(dico,graph):	#Comme si tout le monde partait en même sans qu'il y ait de problème sur les arcs
+def borne_inf(dico,graph):	#Comme si tout le monde partait en meme sans qu'il y ait de probleme sur les arcs
 	maxe = 0
 	
 	for E in dico:
@@ -202,7 +204,7 @@ def borne_inf(dico,graph):	#Comme si tout le monde partait en même sans qu'il y
 			maxe = somme
 	return maxe
 
-def borne_sup(dico,graph):	#Les zones s'évacuent les unes après les autres, une zone commençant seulement quand la précédente a terminé
+def borne_sup(dico,graph):	#Les zones s'evacuent les unes apres les autres, une zone commencant seulement quand la precedente a termine
 	maxe = 0
 	
 	for E in dico:
@@ -275,8 +277,12 @@ def intensification(liste_evac_node,dico,graph):
 
 
 	liste_depart = []
+<<<<<<< HEAD
 	rang = []
 	#On se place à borne sup
+=======
+	#On se place a borne sup
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 	maxe = 0
 	for E in dico:
 		
@@ -321,6 +327,7 @@ def intensification(liste_evac_node,dico,graph):
 				else:
 					somme += graph[(b_tmp,a_tmp)]["length"]
 		maxe += somme
+<<<<<<< HEAD
 
 	#print("liste depart : ",liste_depart)
 	#On divise chaque temps de depart par 2 puis on enleve 1 quand ce n est plus possible
@@ -351,6 +358,71 @@ def intensification(liste_evac_node,dico,graph):
 		print("noeud" , dico[cle]["id"], "rate" , dico[cle]["max_rate"])
 	print(liste_evac_node)
 	return liste_depart
+=======
+	print(liste_depart)
+	continuer = 1
+	coeff = 2 #coeff pour reduire rapidement les dates de depart
+	#while (continuer):
+		
+
+def doable(sol,dico,liste_evac_node):
+	for i in liste_evac_node:
+		if (dico[i]["max_rate"]<sol[i-1][1]):
+			return 0
+		if (sol[i-1][0]<0):
+			return 0
+	return 1
+
+#Fonction d'evaluation avec rate d'evac pris en compte
+#Retourne un tuple contenant la valeur de la fonc objectif
+#et un boolean disant si la solution est valide
+#sol: [[id,date_depart,rate],...]
+def fonc_eval_rate(sol,dico,graph,liste_evac_node):
+	print("fonc_eval")
+	dico_soluce = {}
+	for i in range(len(sol)):
+		dico_soluce[i+1] = {"id" : sol[i][0],"taux_evac" : sol[i][3], "date_debut" : sol[i][1]}
+	dico_soluce["val_fonc_obj"] = liste_depart[-1] + borne_inf(dico,graph)
+	sol_ok = verif(dico_soluce,dico,graph,liste_evac_node)
+	return (dico_soluce["val_fonc_obj"],sol_ok)
+
+def rand_sol(i):
+	l = [-1, 1]
+	m = rd.choice(l)
+	n = rd.randint(0,i)
+	k = rd.randint(1,2)
+	
+	return (n,k,m)
+
+def voisin_random(solu,dico,liste_evac_node):
+	i = len(solu)
+	n,k,m = rand_sol(i)
+	
+	sol_random = cp.deepcopy(solu)
+	sol_random[n-1][k] = sol_random[n-1][k] + m
+
+	while(doable(sol_random,dico,liste_evac_node) != 1):
+		n,k,m = rand_sol(i)
+		sol_random = cp.deepcopy(solu)
+		sol_random[n-1][k] = sol_random[n-1][k] + m
+	
+	return sol_random
+	
+#Diversification par recuit simulé
+def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
+	s = cp.deepcopy(sol_initiale);
+	T = temp_initiale;
+	k = 2
+	
+	while():
+		random = rd.rand(0,1)
+		s_prime = voisin_random(s,dico,liste_evac_node)
+		deltaf = fonc_eval_rate(s_prime,dico,graph,liste_evac_node) - fonc_eval_rate(s,dico,graph,liste_evac_node)
+		if((deltaf<0) or (random<np.exp(-deltaf/T))):
+			s = cp.deepcopy(s_prime)
+		T = k*T
+	return s
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 ##############################
 
 
@@ -363,9 +435,13 @@ def intensification(liste_evac_node,dico,graph):
 #print("dico soluce : ",dico_soluce)
 #print("resultat : ",resultat)
 
+<<<<<<< HEAD
 
 print(borne_inf(dico,graph))
 print(borne_sup(dico,graph))
+=======
+#intensification(liste_evac_node,dico,graph)
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 
 
 print("intens = " ,intensification(liste_evac_node,dico,graph))
