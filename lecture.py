@@ -119,6 +119,29 @@ def getFlow(L,date):
 		return L[3]
 ########################################
 
+def verif_2(dico_soluce,dico,graph,liste_evac_node,liste_edge):	
+	objectif_value = dico_soluce["val_fct_obj"]
+	edgesData[][]
+	for t in range(objectif_value):
+		for e in range(len(liste_edge)):
+			edgesData[t][e] = graph[e]["capacity"]
+	for aNode in dico:
+		tInit = dico_soluce[aNode["id"]["date_debut"]
+		remainPeople = aNode["pop"]
+		
+		while(remainPeople>0):
+			t=tInit
+			for e in aNode["v"]:
+				if (t>objectif_value):	
+					return False
+				edgesData[t][e] = edgesData[t][e] - dico_soluce[aNode["id"]]["taux_evac"]
+				remainPeople = remainPeople - dico_soluce[aNode["id"]]["taux_evac"]
+				if (edgesData[t][e] < 0):
+					return False
+				t = t + graph[
+
+		
+
 ########################################
 #Permet de verifier que la solution est realisable
 #Renvoie True ou False
