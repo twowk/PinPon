@@ -52,7 +52,7 @@ def file_read(filename):
 		struct["n1"] = int(line[0])
 		struct["n2"] = int(line[1])
 		struct["duedate"] = int(line[2])
-		struct["length"] = int(float(line[3]))
+		struct["length"] = int(float(line[3])) # + 1 ?????????
 		struct["capacity"] = int(float(line[4]))
 	
 		liste_edge.append([int(line[0]),int(line[1])])
@@ -146,39 +146,48 @@ def verif_2(dico_soluce,dico,graph,liste_evac_node,liste_edge):
 #Permet de verifier que la solution est realisable
 #Renvoie True ou False
 def verif(dico_soluce,dico,graph,liste_evac_node):
-
 	liste_R = []
 	liste_master = []
-
-	for i in range(len(liste_evac_node)):
-		decalage = dico_soluce[i+1]["date_debut"]
-		for j in range(dico[i+1]["k"]):
+	for i in liste_evac_node:
+		decalage = dico_soluce[i]["date_debut"]
+		for j in range(dico[i]["k"]):
 			if j == 0:
-				liste = [dico[i+1]["id"],dico[i+1]["v"][0]]
+				liste = [dico[i]["id"],dico[i]["v"][0]]
 			else:
-				liste = [dico[i+1]["v"][j-1],dico[i+1]["v"][j]]
+				liste = [dico[i]["v"][j-1],dico[i]["v"][j]]
 			if not (liste in liste_R):
 				liste_R.append(liste)
-				duree = dico[i+1]["pop"] / dico_soluce[i+1]["taux_evac"]
-				liste_master.append([liste,[[dico[i+1]["id"],duree,decalage,dico_soluce[i+1]["taux_evac"]]]])
+				duree = int(dico[i]["pop"] / dico_soluce[i]["taux_evac"]) 
+				liste_master.append([liste,[[dico[i]["id"],duree,decalage,dico_soluce[i]["taux_evac"]]]])
 
 			else:
-				duree = dico[i+1]["pop"] / dico_soluce[i+1]["taux_evac"]
-				liste_master[liste_R.index(liste)][1].append([dico[i+1]["id"],duree,decalage,dico_soluce[i+1]["taux_evac"]])
+				duree = int(dico[i]["pop"] / dico_soluce[i]["taux_evac"]) 
+				liste_master[liste_R.index(liste)][1].append([dico[i]["id"],duree,decalage,dico_soluce[i]["taux_evac"]])
+			if((liste[0],liste[1]) in graph):
+				decalage = decalage + graph[(liste[0],liste[1])]["length"]
+			else:
+				decalage = decalage + graph[(liste[1],liste[0])]["length"]
 
-			decalage = decalage + graph[(liste[0],liste[1])]["length"]
-	
+	#print("liste_master : " , liste_master)
 	for K in liste_master:
-		capa = graph[(K[0][0],K[0][1])]["capacity"]
+		
+		if((K[0][0],K[0][1]) in graph):
+			capa = graph[(K[0][0],K[0][1])]["capacity"]
+		else:
+			capa = graph[(K[0][1],K[0][0])]["capacity"]
 	
 		decal = []
 		for L in K[1]:
 				decal.append(L[2])
+		
 		for date in decal:
 			somme = 0
 			for	L in K[1]:
+				
 				somme += getFlow(L,date)
+
 			if somme>capa:
+				#print("pas ok 1")
 				return False
 	decal_max = 0
 	for z in liste_evac_node:
@@ -186,21 +195,34 @@ def verif(dico_soluce,dico,graph,liste_evac_node):
 			decal_max = dico_soluce[z]["date_debut"]
 	
 	if((borne_inf(dico,graph)+decal_max)==dico_soluce["val_fct_obj"]):
+		#print("ok")
 		return True
 	else:
+		#print("pas ok 2")
 		return False
+
 ########################################	
 
 def borne_inf(dico,graph):	#Comme si tout le monde partait en meme sans qu'il y ait de probleme sur les arcs
 	maxe = 0
 	
 	for E in dico:
-		somme = dico[E]["pop"] / dico[E]["max_rate"]
+		somme = int(dico[E]["pop"] / dico[E]["max_rate"])
 		for j in range(dico[E]["k"]):
 			if j == 0:
-				somme += graph[(dico[E]["id"],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["id"]	#L ordre des noeuds d un arc peut être inverse il faut tester les deux possibilites
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 			else:
-				somme += graph[(dico[E]["v"][j-1],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["v"][j-1]	
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 		if somme > maxe :
 			maxe = somme
 	return maxe
@@ -212,9 +234,19 @@ def borne_sup(dico,graph):	#Les zones s'evacuent les unes apres les autres, une 
 		somme = dico[E]["pop"] / dico[E]["max_rate"]
 		for j in range(dico[E]["k"]):
 			if j == 0:
-				somme += graph[(dico[E]["id"],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["id"]	#L ordre des noeuds d un arc peut être inverse il faut tester les deux possibilites
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 			else:
-				somme += graph[(dico[E]["v"][j-1],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["v"][j-1]	
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 		maxe += somme
 	return maxe
 
@@ -223,29 +255,133 @@ def borne_sup(dico,graph):	#Les zones s'evacuent les unes apres les autres, une 
 #Retourne un tuple contenant la valeur de la fonc objectif
 #et un boolean disant si la solution est valide
 def fonc_eval(liste_depart,dico,graph,liste_evac_node):
-	print("fonc_eval")
+	#print("fonc_eval")
 	dico_soluce = {}
 	for i in range(len(liste_depart)):
-		dico_soluce[i+1] = {"id" : i+1,"taux_evac" : dico[i+1]["max_rate"], "date_debut" : liste_depart[i]}
-	dico_soluce["val_fonc_obj"] = liste_depart[-1] + borne_inf(dico,graph)
+		dico_soluce[liste_evac_node[i]] = {"id" : liste_evac_node[i],"taux_evac" : dico[liste_evac_node[i]]["max_rate"], "date_debut" : liste_depart[i]}
+	dico_soluce["val_fct_obj"] = max(liste_depart) + borne_inf(dico,graph)
 	sol_ok = verif(dico_soluce,dico,graph,liste_evac_node)
-	return (dico_soluce["val_fonc_obj"],sol_ok)
+	return (dico_soluce["val_fct_obj"],sol_ok)
 
+#Renvoie 
+def transforme_liste(lst):
+	lst_tmp = lst.copy()
+	for i in range(len(lst)):
+		j = lst.index(min(lst))
+		lst_tmp[j] = i
+		lst[j] = 9999999999
+	return lst_tmp
 #Recherche locale - Intensification
 def intensification(liste_evac_node,dico,graph):
 	print("intensification")
+	#Mise a jour des max rates
+	for cle in dico:
+		max_rate = dico[cle]["max_rate"]
+		for j in range(dico[cle]["k"]):
+			if j == 0:
+				a_tmp = dico[cle]["id"]	#L ordre des noeuds d un arc peut être inverse il faut tester les deux possibilites
+				b_tmp = dico[cle]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					if graph[(a_tmp,b_tmp)]["capacity"] < max_rate:
+						max_rate = graph[(a_tmp,b_tmp)]["capacity"]
+				else:
+					if graph[(b_tmp,a_tmp)]["capacity"] < max_rate:
+						max_rate = graph[(b_tmp,a_tmp)]["capacity"]
+			else:
+				a_tmp = dico[cle]["v"][j-1]	
+				b_tmp = dico[cle]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					if graph[(a_tmp,b_tmp)]["capacity"] < max_rate:
+						max_rate = graph[(a_tmp,b_tmp)]["capacity"]
+				else:
+					if graph[(b_tmp,a_tmp)]["capacity"] < max_rate:
+						max_rate = graph[(b_tmp,a_tmp)]["capacity"]
+		dico[cle]["max_rate"] = max_rate
+
+
 	liste_depart = []
+<<<<<<< HEAD
+	rang = []
+	#On se place à borne sup
+=======
 	#On se place a borne sup
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 	maxe = 0
 	for E in dico:
+		
 		liste_depart.append(maxe)
 		somme = dico[E]["pop"] / dico[E]["max_rate"]
 		for j in range(dico[E]["k"]):
 			if j == 0:
-				somme += graph[(dico[E]["id"],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["id"]	#L ordre des noeuds d un arc peut être inverse il faut tester les deux possibilites
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 			else:
-				somme += graph[(dico[E]["v"][j-1],dico[E]["v"][j])]["length"]
+				a_tmp = dico[E]["v"][j-1]	
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
+		rang.append(somme)
+	rang = transforme_liste(rang)
+
+	for i in range(len(rang)):
+		ind = rang.index(i)
+		liste_depart[ind] = maxe
+		E = liste_evac_node[ind]
+		somme = int(dico[E]["pop"] / dico[E]["max_rate"]) + 1
+		for j in range(dico[E]["k"]):
+			if j == 0:
+				a_tmp = dico[E]["id"]	#L ordre des noeuds d un arc peut être inverse il faut tester les deux possibilites
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
+			else:
+				a_tmp = dico[E]["v"][j-1]	
+				b_tmp = dico[E]["v"][j]
+				if (a_tmp,b_tmp) in graph:
+					somme += graph[(a_tmp,b_tmp)]["length"]
+				else:
+					somme += graph[(b_tmp,a_tmp)]["length"]
 		maxe += somme
+<<<<<<< HEAD
+
+	#print("liste depart : ",liste_depart)
+	#On divise chaque temps de depart par 2 puis on enleve 1 quand ce n est plus possible
+	for j in range(len(liste_depart)):
+		i = rang.index(j)
+		(val,ok) = fonc_eval(liste_depart,dico,graph,liste_evac_node)
+		print(ok)
+		while (liste_depart[i] > 0 and ok == True):
+			lst_tmp = liste_depart.copy()
+			lst_tmp[i] = int(liste_depart[i] /2)
+			(val,ok) = fonc_eval(lst_tmp,dico,graph,liste_evac_node)
+			print(ok)
+			if (ok == True):
+				liste_depart = lst_tmp.copy()
+
+		(val,ok) = fonc_eval(liste_depart,dico,graph,liste_evac_node)
+		print(ok)
+		while (liste_depart[i] > 0 and ok == True):
+			lst_tmp = liste_depart.copy()
+			lst_tmp[i] = liste_depart[i]-1
+			(val,ok) = fonc_eval(lst_tmp,dico,graph,liste_evac_node)
+			print(ok)
+			if (ok == True):
+				liste_depart = lst_tmp.copy()
+
+
+	for cle in dico:
+		print("noeud" , dico[cle]["id"], "rate" , dico[cle]["max_rate"])
+	print(liste_evac_node)
+	return liste_depart
+=======
 	print(liste_depart)
 	continuer = 1
 	coeff = 2 #coeff pour reduire rapidement les dates de depart
@@ -309,20 +445,27 @@ def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
 			s = cp.deepcopy(s_prime)
 		T = k*T
 	return s
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 ##############################
 
+
+
 (dico, graph, liste_evac_node, liste_edge) = file_read("exemple.txt")
-(dico_soluce,liste_evac_node_soluce) = soluce("soluce.txt")
 
-resultat = verif(dico_soluce,dico,graph,liste_evac_node)
+#(dico_soluce,liste_evac_node_soluce) = soluce("sparse_10_30_3_10_I2019052809_35_12")
+#resultat = verif(dico_soluce,dico,graph,liste_evac_node)
 
-print("dico soluce : ",dico_soluce)
-print("evac node soluce : ", liste_evac_node_soluce)
-#print(resultat)
-#print(borne_inf(dico,graph))
-#print(borne_sup(dico,graph))
+#print("dico soluce : ",dico_soluce)
+#print("resultat : ",resultat)
 
+<<<<<<< HEAD
+
+print(borne_inf(dico,graph))
+print(borne_sup(dico,graph))
+=======
 #intensification(liste_evac_node,dico,graph)
+>>>>>>> d29af1816a7d669df988f4b7e86708f396fc802d
 
 
+print("intens = " ,intensification(liste_evac_node,dico,graph))
 
