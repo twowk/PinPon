@@ -4,6 +4,7 @@ import copy as cp
 import operator as op
 import math as m
 
+
 ########################################
 #Permet la lecture du document en entree, renvoie : 
 #dico : toutes les infos pour chaque zone a evacuer
@@ -334,12 +335,16 @@ def write_sol(sol):
     f.write("no comment" + "\n")
     f.close()
 
-def doable(sol,dico):
+def doable(sol,dico,graph,liste_evac_node,liste_edge):
     for i in range(len(sol)):
         if (dico[sol[i][0]]["max_rate"]<sol[i][2]):
                         return 0
         if (sol[i][1]<0):
             return 0
+        if (sol[i][2]<=0):
+            return 0
+    if(fonc_eval_rate(sol,dico,graph,liste_evac_node,liste_edge)[1] != True):
+        return 0
     return 1
 
 #Fonction d'evaluation avec rate d'evac pris en compte
@@ -375,16 +380,17 @@ def rand_sol(i):
     m = rd.choice(l)
     n = rd.randint(0,i)
     k = rd.randint(1,2)
+    #k=1
     
     return (n,k,m)
 
-def voisin_random(solu,dico):
+def voisin_random(solu,dico,graph,liste_evac_node,liste_edge):
     i = len(solu)
     n,k,m = rand_sol(i)
-    
+
     sol_random = cp.deepcopy(solu)
     sol_random[n-1][k] = sol_random[n-1][k] + m
-    while(doable(sol_random,dico) != 1):
+    while(doable(sol_random,dico,graph,liste_evac_node,liste_edge)!= 1):
         n,k,m = rand_sol(i)
         sol_random = cp.deepcopy(solu)
         sol_random[n-1][k] = sol_random[n-1][k] + m
@@ -394,12 +400,12 @@ def voisin_random(solu,dico):
 def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
     s = cp.deepcopy(sol_initiale)
     T = temp_initiale
-    k = 0.9
+    k = 0.99
     
-    while(T>100):
+    while(T>0.000000000001):
         print("T: " + str(T))
         random = rd.uniform(0.0,1.0)
-        s_prime = voisin_random(s,dico)
+        s_prime = voisin_random(s,dico,graph,liste_evac_node,liste_edge)
         deltaf = fonc_eval_rate(s_prime,dico,graph,liste_evac_node,liste_edge)[0] - fonc_eval_rate(s,dico,graph,liste_evac_node,liste_edge)[0]
         if((deltaf<0) or (random<np.exp(-deltaf/T))):
             s = cp.deepcopy(s_prime)
@@ -408,13 +414,13 @@ def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
     return s
 ##############################
 
-#input_file = "exemple.txt"
-input_file = "sparse_10_30_3_1_I.full"
+input_file = "exemple.txt"
+#input_file = "sparse_10_30_3_1_I.full"
 
 (dico, graph, liste_evac_node, liste_edge) = file_read(input_file)
 
 sol_intens = intensification(liste_evac_node,dico,graph,liste_edge,input_file)
-#sol_diver = diversification(sol_intens,500,liste_evac_node,dico,graph)
+sol_diver = diversification(sol_intens,5000,liste_evac_node,dico,graph)
 
 (dico_soluce,liste_evac_node_soluce) = soluce("out.txt")
 #(dico_soluce,liste_evac_node_soluce) = soluce("soluce.txt")
@@ -424,7 +430,7 @@ print("MIN: ", borne_inf(dico,graph))
 print("MAX: ", borne_sup(dico,graph))
 
 print("intens = " ,sol_intens," val_fct_obj = ",fonc_eval_rate(sol_intens,dico,graph,liste_evac_node,liste_edge)[0])
-#print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_intens,dico,graph,liste_evac_node,liste_edge)[0])
+print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_diver,dico,graph,liste_evac_node,liste_edge)[0])
 
 print("resultat : ",resultat)
 
