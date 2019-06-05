@@ -1,10 +1,10 @@
 exemple.txt
 3
 3 3 0
-1 7 1
-2 3 0
+1 8 0
+2 5 9
 valid
-36
+40
 1000
 resolu par intensification
 no comment

@@ -136,6 +136,8 @@ def verif2(dico_soluce,dico,graph,liste_evac_node,liste_edge):
     tmax = 0    
     for aNode in dico:
         aNode = dico[aNode]
+        #print(aNode)
+        #print(dico_soluce)
         tInit = dico_soluce[aNode["id"]]["date_debut"]
         remainPeople = aNode["pop"]
         
@@ -150,7 +152,7 @@ def verif2(dico_soluce,dico,graph,liste_evac_node,liste_edge):
                 if((a_tmp,b_tmp) in edgesData[t]):
                     edgesData[t][(a_tmp,b_tmp)] = edgesData[t][(a_tmp,b_tmp)] - dico_soluce[aNode["id"]]["taux_evac"]
                     if (edgesData[t][(a_tmp,b_tmp)] < 0):
-                        print("error above capacity")
+                        print(edgesData[t][(a_tmp,b_tmp)])
                         return False
                     t = t + graph[a_tmp,b_tmp]["length"]
                 elif((b_tmp,a_tmp) in edgesData[t]):
@@ -415,22 +417,25 @@ def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
 ##############################
 
 input_file = "exemple.txt"
+#input_file = "dense_10_30_3_1_I.full"
 #input_file = "sparse_10_30_3_1_I.full"
 
 (dico, graph, liste_evac_node, liste_edge) = file_read(input_file)
 
 sol_intens = intensification(liste_evac_node,dico,graph,liste_edge,input_file)
-sol_diver = diversification(sol_intens,5000,liste_evac_node,dico,graph)
+#sol_diver = diversification(sol_intens,5000,liste_evac_node,dico,graph)
 
 (dico_soluce,liste_evac_node_soluce) = soluce("out.txt")
-#(dico_soluce,liste_evac_node_soluce) = soluce("soluce.txt")
+#(dico_soluce,liste_evac_node_soluce) = soluce("dense_10_30_3_1_I2019053118_15_14")
+#(dico_soluce,liste_evac_node_soluce) = soluce("sparse_10_30_3_1_I2019053115_02_52")
+
 resultat = verif2(dico_soluce,dico,graph,liste_evac_node,liste_edge)
 
 print("MIN: ", borne_inf(dico,graph))
 print("MAX: ", borne_sup(dico,graph))
 
 print("intens = " ,sol_intens," val_fct_obj = ",fonc_eval_rate(sol_intens,dico,graph,liste_evac_node,liste_edge)[0])
-print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_diver,dico,graph,liste_evac_node,liste_edge)[0])
+#print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_diver,dico,graph,liste_evac_node,liste_edge)[0])
 
 print("resultat : ",resultat)
 
