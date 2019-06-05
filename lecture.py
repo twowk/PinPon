@@ -292,6 +292,7 @@ def intensification(liste_evac_node,dico,graph,liste_edge,input_file):
 	for i in range(len(sol)):
 		(val,ok) = fonc_eval_rate(sol,dico,graph,liste_evac_node,liste_edge)
 		while (sol[i][1] > 0 and ok == True):
+			print(sol)
 			sol_tmp = cp.deepcopy(sol)
 			sol_tmp[i][1] = int(sol_tmp[i][1] /2)
 			(val,ok) = fonc_eval_rate(sol_tmp,dico,graph,liste_evac_node,liste_edge)
@@ -300,6 +301,7 @@ def intensification(liste_evac_node,dico,graph,liste_edge,input_file):
 
 		(val,ok) = fonc_eval_rate(sol,dico,graph,liste_evac_node,liste_edge)
 		while (sol[i][1] > 0 and ok == True):
+			print(sol)
 			sol_tmp = cp.deepcopy(sol)
 			sol_tmp[i][1] = sol_tmp[i][1] -1
 			(val,ok) = fonc_eval_rate(sol_tmp,dico,graph,liste_evac_node,liste_edge)
