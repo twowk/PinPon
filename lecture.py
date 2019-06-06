@@ -3,6 +3,7 @@ import random as rd
 import copy as cp
 import operator as op
 import math as m
+import time
 
 
 ########################################
@@ -416,6 +417,8 @@ def diversification(sol_initiale,temp_initiale,liste_evac_node,dico,graph):
     return s
 ##############################
 
+debut = time.time()
+
 input_file = "exemple.txt"
 #input_file = "dense_10_30_3_1_I.full"
 #input_file = "sparse_10_30_3_1_I.full"
@@ -423,7 +426,7 @@ input_file = "exemple.txt"
 (dico, graph, liste_evac_node, liste_edge) = file_read(input_file)
 
 sol_intens = intensification(liste_evac_node,dico,graph,liste_edge,input_file)
-#sol_diver = diversification(sol_intens,5000,liste_evac_node,dico,graph)
+sol_diver = diversification(sol_intens,5000,liste_evac_node,dico,graph)
 
 (dico_soluce,liste_evac_node_soluce) = soluce("out.txt")
 #(dico_soluce,liste_evac_node_soluce) = soluce("dense_10_30_3_1_I2019053118_15_14")
@@ -435,7 +438,10 @@ print("MIN: ", borne_inf(dico,graph))
 print("MAX: ", borne_sup(dico,graph))
 
 print("intens = " ,sol_intens," val_fct_obj = ",fonc_eval_rate(sol_intens,dico,graph,liste_evac_node,liste_edge)[0])
-#print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_diver,dico,graph,liste_evac_node,liste_edge)[0])
+print("divers = " ,sol_diver," val_fct_obj = ",fonc_eval_rate(sol_diver,dico,graph,liste_evac_node,liste_edge)[0])
 
 print("resultat : ",resultat)
 
+fin = time.time()
+duree = fin - debut
+print("Temps de calcul (en s) : ",duree)
