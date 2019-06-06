@@ -153,7 +153,7 @@ def verif2(dico_soluce,dico,graph,liste_evac_node,liste_edge):
                 if((a_tmp,b_tmp) in edgesData[t]):
                     edgesData[t][(a_tmp,b_tmp)] = edgesData[t][(a_tmp,b_tmp)] - dico_soluce[aNode["id"]]["taux_evac"]
                     if (edgesData[t][(a_tmp,b_tmp)] < 0):
-                        print(edgesData[t][(a_tmp,b_tmp)])
+                        print("error above capacity")
                         return False
                     t = t + graph[a_tmp,b_tmp]["length"]
                 elif((b_tmp,a_tmp) in edgesData[t]):
